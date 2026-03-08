@@ -30,3 +30,23 @@ variable "public_subnet_tags" {
   type = map
   default = {} # User can pass his own variables
 }
+
+variable "private_subnet-cidr" {
+  type = list
+  default = ["10.0.11.0/24", "10.0.12.0/24"]
+}
+
+variable "private_subnet_tags" {
+  type = map
+  default = {} 
+}
+
+variable "database_subnet-cidr" {
+  type = list
+  default = ["10.0.21.0/24", "10.0.22.0/24"]
+}
+
+variable "database_subnet_tags" {
+  type = map
+  default = {} # User can pass his own variables
+}
