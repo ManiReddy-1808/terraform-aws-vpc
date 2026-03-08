@@ -12,14 +12,18 @@ resource "aws_internet_gateway" "gw" {
   tags = local.igw_final_tags
 }
 
-# resource "aws_subnet" "public" {
-#   count = length(var.public_subnet-cidr)
-#   vpc_id            = aws_vpc.main.id 
-#   cidr_block        = var.public_subnet-cidr[count.index]   # Get 1st public subnet ID
-#   availability_zone = 
-#   map_public_ip_on_launch = true # Optional: automatically assign public IPs
+resource "aws_subnet" "public" {
+  count = length(var.public_subnet-cidr)
+  vpc_id            = aws_vpc.main.id 
+  cidr_block        = var.public_subnet-cidr[count.index]   # Get 1st public subnet ID
+  availability_zone = local.az_names[count.index]
+  map_public_ip_on_launch = true # Optional: automatically assign public IPs
 
-#   tags = {
-#     Name = "PublicSubnet"
-#   }
-# }
+  tags = merge(
+    local.common_tags,
+    {   # roboshop-dev-public-us-east-1a/1b
+        Name = "${var.project}-${var.environment}-public-${local.az_names[count.index]}"
+    },
+    var.public_subnet_tags # User can pass his own tags for public subnet
+  )
+}
