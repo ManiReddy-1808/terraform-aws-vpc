@@ -15,3 +15,8 @@ variable "vpc_tags" {
   type = map
   default = {} # User can pass his own variables
 }
+
+variable "igw_tags" {
+  type = map
+  default = {} # User can pass his own variables
+}

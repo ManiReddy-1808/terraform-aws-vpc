@@ -5,3 +5,9 @@ resource "aws_vpc" "main" {
 
   tags = local.vpc_final_tags
 }
+
+resource "aws_internet_gateway" "gw" {
+  vpc_id = aws_vpc.main.id  # IGW is associating with above VPC
+
+  tags = local.igw_final_tags
+}
