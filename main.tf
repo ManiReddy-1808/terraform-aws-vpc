@@ -6,13 +6,13 @@ resource "aws_vpc" "main" {
   tags = local.vpc_final_tags
 }
 
-resource "aws_internet_gateway" "gw" {
-  vpc_id = aws_vpc.main.id  # IGW is associating with above VPC
+resource "aws_internet_gateway" "main" { # IGW (ARCH) is associating with above VPC
+  vpc_id = aws_vpc.main.id  
 
   tags = local.igw_final_tags
 }
 
-# Public Subnet tags
+# Below are SUBNET TAGS ==============
 resource "aws_subnet" "public" {
   count = length(var.public_subnet-cidr)
   vpc_id            = aws_vpc.main.id 
@@ -60,6 +60,7 @@ resource "aws_subnet" "database" {
     var.database_subnet_tags # User can pass his own tags for private subnet
   )
 }
+# Below are ROUTE TABLE'S ==========
 
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
@@ -95,4 +96,50 @@ resource "aws_route_table" "database" {
     },
     var.database_route_table_tags
   )
+}
+
+# Below are PUBLIC ROUTES to IGW (To expose externally)
+resource "aws_route" "public" {
+  route_table_id            = aws_route_table.public.id
+  destination_cidr_block    = "0.0.0.0/0"
+  gateway_id = aws_internet_gateway.main.id
+}
+
+# Creating NAT Gateway for private/database subnet to route traffic to Internet via elastic IP (EIP)
+resource "aws_eip" "nat" { 
+  domain                    = "vpc"
+  tags = merge(
+    local.common_tags,
+    {   # roboshop-dev-nat
+        Name = "${var.project}-${var.environment}-nat"
+    },
+    var.eip_tags
+  )  
+}
+
+resource "aws_nat_gateway" "main" { # NAT Gateway needs Elastic IP (EIP) to route traffic to Internet
+  allocation_id = aws_eip.nat.id
+  subnet_id     = aws_subnet.public[0].id # Creating NAT in public-us-east-1a
+  tags = merge(
+  local.common_tags,
+  {   # roboshop-dev-nat
+      Name = "${var.project}-${var.environment}-nat"
+  },
+  var.nat_gateway_tags
+)
+  # To ensure proper ordering, it is recommended to add an explicit dependency
+  # on the Internet Gateway for the VPC.
+  depends_on = [aws_internet_gateway.main]
+}
+
+resource "aws_route" "private" { # Private subnet will route traffic to Internet via NAT Gateway
+  route_table_id            = aws_route_table.private.id
+  destination_cidr_block    = "0.0.0.0/0"
+  nat_gateway_id = aws_nat_gateway.main.id
+}
+
+resource "aws_route" "database" { # Database subnet will route traffic to Internet via NAT Gateway
+  route_table_id            = aws_route_table.database.id
+  destination_cidr_block    = "0.0.0.0/0"
+  nat_gateway_id = aws_nat_gateway.main.id
 }
