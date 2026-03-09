@@ -7,7 +7,7 @@ data "aws_vpc" "default" {
 }
 
  # Created automatically when we create VPC. Get all route tables of default VPC. 
-data "aws_route_tables" "default" {
+data "aws_route_table" "default" {
   vpc_id = data.aws_vpc.default.id
   filter {
     name   = "association.main" # Get only main route table of default VPC
