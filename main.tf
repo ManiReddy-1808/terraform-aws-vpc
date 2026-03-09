@@ -18,7 +18,7 @@ resource "aws_subnet" "public" {
   vpc_id            = aws_vpc.main.id 
   cidr_block        = var.public_subnet-cidr[count.index]   # Get 1st public subnet ID
   availability_zone = local.az_names[count.index]
-  map_public_ip_on_launch = true # Optional: automatically assign public IPs
+  map_public_ip_on_launch = true # By default value id false.
 
   tags = merge(
     local.common_tags,
@@ -35,7 +35,6 @@ resource "aws_subnet" "private" {
   vpc_id            = aws_vpc.main.id 
   cidr_block        = var.private_subnet-cidr[count.index]   # Get 1st private subnet ID
   availability_zone = local.az_names[count.index]
-  map_public_ip_on_launch = false
 
   tags = merge(
     local.common_tags,
@@ -52,7 +51,6 @@ resource "aws_subnet" "database" {
   vpc_id            = aws_vpc.main.id 
   cidr_block        = var.database_subnet-cidr[count.index]   # Get 1st private subnet ID
   availability_zone = local.az_names[count.index]
-  map_public_ip_on_launch = false
 
   tags = merge(
     local.common_tags,
@@ -60,5 +58,41 @@ resource "aws_subnet" "database" {
         Name = "${var.project}-${var.environment}-database-${local.az_names[count.index]}"
     },
     var.database_subnet_tags # User can pass his own tags for private subnet
+  )
+}
+
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.main.id
+
+  tags = merge(
+    local.common_tags,
+    {   # roboshop-dev-public
+        Name = "${var.project}-${var.environment}-public"
+    },
+    var.public_route_table_tags
+  )
+}
+
+resource "aws_route_table" "private" {
+  vpc_id = aws_vpc.main.id
+
+  tags = merge(
+    local.common_tags,
+    {   # roboshop-dev-private
+        Name = "${var.project}-${var.environment}-private"
+    },
+    var.private_route_table_tags
+  )
+}
+
+resource "aws_route_table" "database" {
+  vpc_id = aws_vpc.main.id
+
+  tags = merge(
+    local.common_tags,
+    {   # roboshop-dev-database
+        Name = "${var.project}-${var.environment}-database"
+    },
+    var.database_route_table_tags
   )
 }

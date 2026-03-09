@@ -18,7 +18,7 @@ variable "vpc_tags" {
 
 variable "igw_tags" {
   type = map
-  default = {} # User can pass his own variables
+  default = {} 
 }
 
 variable "public_subnet-cidr" {
@@ -28,7 +28,7 @@ variable "public_subnet-cidr" {
 
 variable "public_subnet_tags" {
   type = map
-  default = {} # User can pass his own variables
+  default = {} 
 }
 
 variable "private_subnet-cidr" {
@@ -48,5 +48,21 @@ variable "database_subnet-cidr" {
 
 variable "database_subnet_tags" {
   type = map
-  default = {} # User can pass his own variables
+  default = {} 
+}
+
+variable "public_route_table_tags" {
+  type = map
+  default = {}
+}
+
+variable "private_route_table_tags" {
+  type = map
+  default = {}
+}
+
+variable "database_route_table_tags" {
+  type = map
+  default = {}
+
 }
